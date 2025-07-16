@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: public_bronze
+    schema: public_bronze
+    tables:
+      - name: bronze_weather
+        description: "Raw weather data ingested from OpenWeather API"

@@ -3,6 +3,7 @@ import pandas as pd
 import json
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
@@ -14,7 +15,7 @@ load_dotenv("/opt/airflow/.env")
 # Local path to store the weather data file
 LOCAL_FILE_PATH = os.environ.get("LOCAL_FILE_PATH")
 # Database schema name
-SCHEMA_NAME = "bronze"
+SCHEMA_NAME = "public_bronze"
 
 def get_db_engine():
     # Create the database engine using environment variables
@@ -117,5 +118,12 @@ store_data = PythonOperator(
     dag=dag,
 )
 
+#Run silver DAG after bronze layer
+trigger_silver_dag = TriggerDagRunOperator(
+    task_id="trigger_silver_layer_dag",
+    trigger_dag_id="silver_layer_dag", 
+    dag=dag,
+)
+
 # Set task dependencies
-ingest_data_task >> store_data
+ingest_data_task >> store_data >> trigger_silver_dag
