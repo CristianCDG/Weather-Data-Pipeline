@@ -24,7 +24,14 @@
 
 ###
 
-<p align="left">- Loads configuration from environment variables for API and database connection.<br>- Extracts weather data and saves it as a local JSON file.<br>- Transforms nested fields to JSON strings for SQL compatibility.<br>- Loads the processed data into the bronze_weather table within the bronze schema.<br>- Includes error handling and logging for each step.</p>
+<p align="left">
+- Loads configuration from environment variables for API and database connection.<br>
+- Extracts weather data directly from the API and loads it into the bronze table in PostgreSQL.<br>
+- Transforms nested fields to JSON strings for SQL compatibility.<br>
+- Loads the processed data into the bronze_weather table within the bronze schema.<br>
+- Includes error handling and logging for each step.<br>
+- Automatically triggers the silver layer DAG after successful ingestion.
+</p>
 
 ###
 
