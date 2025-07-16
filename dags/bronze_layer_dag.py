@@ -25,34 +25,14 @@ def get_db_engine():
     db = os.environ.get("POSTGRES_DB")
     return create_engine(f'postgresql://{user}:{password}@{host}:5432/{db}')
 
-def extract_weather_data():
-    # Fetch weather data from API and save it locally
+def extract_and_load_weather_data():
+    # Fetch weather data from API and load directly into the database
     try:
         api_url = os.environ.get("URL_WEATHER_API")
-                
         response = requests.get(api_url)
         response.raise_for_status()
 
-        # Create directory if it doesn't exist
-        os.makedirs(os.path.dirname(LOCAL_FILE_PATH), exist_ok=True)
-        
-        # Save API response to local file
-        with open(LOCAL_FILE_PATH, "w") as file:
-            file.write(response.text)
-
-        print(f"Data fetched successfully from API and stored at {LOCAL_FILE_PATH}")
-        return True
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching data: {e}")
-        return False
-    
-def send_data_to_db():
-    # Process local weather data file and load it into the database
-    try:
-        with open(LOCAL_FILE_PATH, 'r') as file:
-            weather_data = json.load(file)
-
-        # Get weather data list from JSON
+        weather_data = response.json()
         weather_list = weather_data.get('list', [])
         df = pd.DataFrame(weather_list)
 
@@ -80,11 +60,12 @@ def send_data_to_db():
             chunksize=1000,
         )
 
-        print(f"Data loaded successfully. {len(df)} rows inserted.")
+        print(f"Data fetched from API and loaded directly to bronze table. {len(df)} rows inserted.")
+        return True
 
     except Exception as e:
-        print(f"Error loading data to database: {e}")
-        raise
+        print(f"Error fetching or loading data: {e}")
+        return False
 
 # Default DAG configuration
 default_args = {
@@ -104,17 +85,10 @@ dag = DAG(
     catchup=False,
 )
 
-# Task to extract data from API
-ingest_data_task = PythonOperator(
-    task_id="extract_data_from_api",
-    python_callable=extract_weather_data,
-    dag=dag,
-)
-
-# Task to load data into the database
-store_data = PythonOperator(
-    task_id="send_data_to_db",
-    python_callable=send_data_to_db,
+# Task to extract and load data from API directly to bronze
+extract_and_load_task = PythonOperator(
+    task_id="extract_and_load_weather_data",
+    python_callable=extract_and_load_weather_data,
     dag=dag,
 )
 
@@ -126,4 +100,4 @@ trigger_silver_dag = TriggerDagRunOperator(
 )
 
 # Set task dependencies
-ingest_data_task >> store_data >> trigger_silver_dag
+extract_and_load_task >> trigger_silver_dag
