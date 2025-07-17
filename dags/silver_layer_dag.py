@@ -1,6 +1,7 @@
 from airflow import DAG
 from datetime import datetime, timedelta
 from airflow.operators.bash import BashOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 default_args = {
     "owner": "cristiandominguezgutierrez",
@@ -18,8 +19,19 @@ dag = DAG(
     catchup=False,
 )
 
+
 run_dbt_silver_task = BashOperator(
     task_id="run_dbt_silver_model",
     bash_command="cd /opt/airflow/dbt && dbt run --models silver",
     dag=dag,
 )
+
+#Run gold DAG after silver layer
+trigger_gold_dag = TriggerDagRunOperator(
+    task_id="trigger_gold_layer_dag",
+    trigger_dag_id="gold_layer_dag", 
+    dag=dag,
+)
+
+# Set task dependencies
+run_dbt_silver_task >> trigger_gold_dag
