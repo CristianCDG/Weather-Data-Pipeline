@@ -50,3 +50,20 @@
 <p align="left">- atmospheric_conditions: Extracts and normalizes temperature, pressure, humidity, and related metrics.<br>- weather_conditions: Flattens weather array details such as condition ID, group, description, and icon.<br>- cloud_coverage: Normalizes cloud coverage percentage for each forecast.<br>- rainfall_volume: Extracts rainfall data, handling missing or invalid values.</p>
 
 ###
+
+<h3 align="center">Gold Layer: Weather Data Aggregation & Analytics</h3>
+
+###
+
+<p align="left">
+The gold layer contains dbt models that aggregate, summarize, and enrich the normalized weather data from the silver layer. These models are designed for advanced analytics, reporting, and business intelligence.
+
+**Key Models:**
+<p align="left">
+- daily_weather_summary: Aggregates daily weather metrics such as minimum, maximum, and average temperature, total rainfall, average humidity, maximum wind speed, and most frequent weather condition.<br>
+- forecast_summary_per_3h: Provides a comprehensive 3-hourly weather forecast, joining all relevant silver models for detailed visibility, precipitation, temperature, wind, cloud coverage, and weather conditions.<br>
+- weather_events: Detects and summarizes extreme weather events (e.g., heavy rain, strong winds, extreme temperatures) for each day.
+</p>
+
+The gold layer enables high-level insights and supports decision-making by transforming granular weather data into analytics-ready tables.
+</p>
